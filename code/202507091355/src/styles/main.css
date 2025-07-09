@@ -1,0 +1,489 @@
+/* 
+  main.css
+  包含应用程序的样式，优化了外观设计，包括控制面板、按钮、加载动画等的样式，以提升用户体验。
+*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+}
+
+body {
+    overflow: hidden;
+    background: #000;
+    color: #fff;
+    height: 100vh;
+}
+
+#three-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.control-panel {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 350px;
+    background: rgba(10, 20, 50, 0.85);
+    border-radius: 12px;
+    padding: 20px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+h1 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    color: #4cc9f0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.panel-toggle {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 30px;
+    height: 30px;
+    background: rgba(76, 201, 240, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.control-group {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.control-group h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #4cc9f0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    background: #4361ee;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.3s;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.btn:hover {
+    background: #4895ef;
+    transform: translateY(-2px);
+}
+
+.btn-start {
+    background: linear-gradient(45deg, #3a86ff, #4cc9f0);
+    font-size: 18px;
+    padding: 15px;
+    margin-top: 20px;
+}
+
+.btn-start:hover {
+    background: linear-gradient(45deg, #4a96ff, #5cdaef);
+}
+
+.loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 400;
+    background: #000;
+}
+
+.loader {
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top: 5px solid #4cc9f0;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loading-text {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #4cc9f0;
+    text-align: center;
+    max-width: 80%;
+}
+
+.notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(10, 20, 50, 0.85);
+    padding: 15px 25px;
+    border-radius: 8px;
+    color: white;
+    z-index: 300;
+    backdrop-filter: blur(10px);
+    border-left: 4px solid #4cc9f0;
+    transform: translateX(120%);
+    transition: transform 0.3s ease-out;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.model-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.model-item {
+    background: rgba(76, 201, 240, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 1px solid rgba(76, 201, 240, 0.2);
+}
+
+.model-item:hover {
+    background: rgba(76, 201, 240, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(76, 201, 240, 0.2);
+}
+
+.model-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+.model-item span {
+    font-size: 14px;
+    display: block;
+}
+
+.info-panel {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(10, 20, 50, 0.85);
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 200;
+    backdrop-filter: blur(10px);
+    max-width: 300px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.info-panel h3 {
+    color: #4cc9f0;
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+.info-panel p {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #e0f0ff;
+}
+
+.hidden {
+    display: none;
+}
+
+.ratio-info {
+    margin-top: 15px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.ratio-info h4 {
+    color: #a0d8ff;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.ratio-info ul {
+    padding-left: 20px;
+    font-size: 14px;
+}
+
+.ratio-info li {
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.view-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.view-btn {
+    flex: 1;
+    padding: 10px;
+    background: rgba(76, 201, 240, 0.1);
+    border: 1px solid rgba(76, 201, 240, 0.3);
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+}
+
+.view-btn:hover {
+    background: rgba(76, 201, 240, 0.2);
+}
+
+.view-btn.active {
+    background: #4cc9f0;
+    color: #000;
+}
+
+.zoom-info {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #a0d8ff;
+    text-align: center;
+}
+
+.planet-label {
+  position: absolute;
+  z-index: 100;
+  user-select: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  pointer-events: auto;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 4px rgba(255,255,255,0.5);
+  transition: background 0.3s, transform 0.3s;
+}
+.planet-label:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.planet-label {
+    position: absolute;
+    z-index: 100;
+    user-select: none;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    pointer-events: auto;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 4px rgba(255,255,255,0.5);
+    transition: background 0.3s, transform 0.3s;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.4;
+  }
+.planet-label:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translate(-50%, -50%) scale(1.05);
+}
+.planet-label .planet-name {
+    font-size: 14px;
+    font-weight: bold;
+}
+.planet-label .planet-desc {
+    font-size: 12px;
+    opacity: 0.8;
+}
+
+/* chat-ai */
+html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: url('96308619_p1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #chatToggleBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      background-color: #ac7575;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 9999;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    #chatToggleBtn.expanded {
+      width: 400px;
+      height: auto;
+      border-radius: 20px;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    #chatToggleBtn input {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    #chatToggleBtn button {
+      padding: 8px 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 20px;
+      background-color: #86a1bb;
+      color: white;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    #chatToggleBtn button:hover {
+      background-color: #24313e;
+    }
+
+    #chatWrapper {
+      position: fixed;
+      bottom: 100px;
+      right: 10px;
+      width: 400px;
+      max-height: 400px;
+      background: transparent;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9998;
+      border-radius: 12px;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    #chat {
+  border: none;
+  background: transparent;
+  padding: 12px;
+  height: 300px;
+  overflow-y: auto;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* 只在顶部渐隐，底部不透明 */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
+}
+
+
+    #chat p {
+      max-width: 75%;
+      padding: 10px 14px;
+      margin: 0;
+      border-radius: 18px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    #chat p.user {
+      align-self: flex-end;
+      background: #00000000;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    #chat p.ai {
+      align-self: flex-start;
+      background: transparent;
+      color: #ffffff;
+      border-bottom-left-radius: 4px;
+    }
+    #chatWrapper::-webkit-scrollbar,
+    #chat::-webkit-scrollbar {
+    display: none; /* Chrome / Safari / Edge */
+    }
+
+    #chatWrapper,
+    #chat {
+    -ms-overflow-style: none;  /* IE 和 Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+/* chat-ai */
+@media (max-width: 768px) {
+    .control-panel {
+        width: 90%;
+        left: 5%;
+    }
+
+    .model-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
