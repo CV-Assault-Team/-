@@ -1,1 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: url('96308619_p1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #chatToggleBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      background-color: #ffffffcc;
+      color: #333;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 9999;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    #chatToggleBtn.expanded {
+      width: 400px;
+      height: auto;
+      border-radius: 20px;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    #chatToggleBtn input {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    #chatToggleBtn button {
+      padding: 8px 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 20px;
+      background-color: #0084ff;
+      color: white;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    #chatToggleBtn button:hover {
+      background-color: #005bb5;
+    }
+
+    #chatWrapper {
+      position: fixed;
+      bottom: 100px;
+      right: 10px;
+      width: 400px;
+      max-height: 400px;
+      background: rgba(255, 255, 255, 0.1);
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9998;
+      border-radius: 12px;
+      padding: 10px;
+      backdrop-filter: blur(10px);
+      overflow-y: auto;
+    }
+
+    #chat {
+      border: 1px solid #ddd;
+      background: #ffffff55;
+      padding: 12px;
+      height: 300px;
+      overflow-y: auto;
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #chat p {
+      max-width: 75%;
+      padding: 10px 14px;
+      margin: 0;
+      border-radius: 18px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    #chat p.user {
+      align-self: flex-end;
+      background: #0084ff;
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    #chat p.ai {
+      align-self: flex-start;
+      background: #f0f0f0;
+      color: #000;
+      border-bottom-left-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div id="chatToggleBtn" onclick="expandChatBtn()">
+    Ask
+  </div>
+
+  <div id="chatWrapper">
+    <div id="chat"></div>
+  </div>
+
+  <script>
+    const API_KEY = "MY-KEY";
+    const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+
+    const pageContext = `
+你是一个嵌入网页的聊天工具,专门用来解决用户的天文相关的问题。请直接回答用户问题，不要提及你的身份或模型来源。
+禁止说“我是 AI”、“我是助手”等身份信息。
+标题：${document.title}
+URL：${window.location.href}
+内容摘录：${document.body.innerText.slice(0, 300)} ...
+`;
+
+    let history = [
+      { role: "system", content: pageContext }
+    ];
+
+    let waitingForReply = false;  // 标记是否等待AI回复
+
+    function expandChatBtn() {
+      const btn = document.getElementById("chatToggleBtn");
+      const wrapper = document.getElementById("chatWrapper");
+
+      if (!btn.classList.contains("expanded")) {
+        btn.classList.add("expanded");
+        btn.innerHTML = `
+          <input id="userInput" placeholder="请输入问题..." />
+          <button id="sendBtn">发送</button>
+        `;
+        wrapper.style.display = "flex";
+
+        setTimeout(() => {
+          const input = document.getElementById("userInput");
+          input.focus();
+
+          input.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              send();
+            }
+          });
+
+          document.getElementById("sendBtn").onclick = send;
+        }, 100);
+
+        // 添加点击外部收起事件监听
+        document.addEventListener('click', outsideClickListener);
+      }
+    }
+
+    function collapseChatBtn() {
+      const btn = document.getElementById("chatToggleBtn");
+      const wrapper = document.getElementById("chatWrapper");
+
+      btn.classList.remove("expanded");
+      btn.innerText = "Ask";
+      wrapper.style.display = "none";
+
+      // 移除外部点击监听
+      document.removeEventListener('click', outsideClickListener);
+    }
+
+    function outsideClickListener(event) {
+      const btn = document.getElementById("chatToggleBtn");
+      const wrapper = document.getElementById("chatWrapper");
+      // 如果点击目标不在按钮或聊天框内，则收起
+      if (!btn.contains(event.target) && !wrapper.contains(event.target)) {
+        collapseChatBtn();
+      }
+    }
+
+    async function send() {
+      if (waitingForReply) return; // 如果AI正在回复，阻止重复发送
+      const input = document.getElementById("userInput");
+      if (!input) return; // 防止收起后调用send
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+
+      const chat = document.getElementById("chat");
+      chat.innerHTML += `<p class="user">${text}</p>`;
+      chat.scrollTop = chat.scrollHeight;
+      history.push({ role: "user", content: text });
+
+      waitingForReply = true;
+      try {
+        // AI 逐步显示回复的模拟（假设接口支持分段回复，这里演示简单等待）
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "chatglm_turbo",
+            messages: history
+          })
+        });
+
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content || "AI 没有回应";
+        history.push({ role: "assistant", content: reply });
+
+        // 添加AI回复到聊天框
+        chat.innerHTML += `<p class="ai">${reply}</p>`;
+        chat.scrollTop = chat.scrollHeight;
+      } catch (err) {
+        const chat = document.getElementById("chat");
+        chat.innerHTML += `<p class="ai">请求失败</p>`;
+        console.error(err);
+      } finally {
+        waitingForReply = false;
+      }
+    }
+  </script>
+</body>
+</html>
 
