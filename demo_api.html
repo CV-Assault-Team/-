@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: url('96308619_p1.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    #chatToggleBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 10px;
+      width: 60px;
+      height: 60px;
+      background-color: #fc0000;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 9999;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+
+    #chatToggleBtn.expanded {
+      width: 400px;
+      height: auto;
+      border-radius: 20px;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    #chatToggleBtn input {
+      flex: 1;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      outline: none;
+    }
+
+    #chatToggleBtn button {
+      padding: 8px 14px;
+      font-size: 14px;
+      border: none;
+      border-radius: 20px;
+      background-color: #0084ff;
+      color: white;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    #chatToggleBtn button:hover {
+      background-color: #005bb5;
+    }
+
+    #chatWrapper {
+      position: fixed;
+      bottom: 100px;
+      right: 10px;
+      width: 400px;
+      max-height: 400px;
+      background: transparent;
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 9998;
+      border-radius: 12px;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    #chat {
+  border: none;
+  background: transparent;
+  padding: 12px;
+  height: 300px;
+  overflow-y: auto;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* 只在顶部渐隐，底部不透明 */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
+  mask-image: linear-gradient(to bottom, transparent 0%, black 10%, black 100%);
+}
+
+
+    #chat p {
+      max-width: 75%;
+      padding: 10px 14px;
+      margin: 0;
+      border-radius: 18px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+    }
+
+    #chat p.user {
+      align-self: flex-end;
+      background: #00000000;
+      color: #ffffff;
+      border-bottom-right-radius: 4px;
+    }
+
+    #chat p.ai {
+      align-self: flex-start;
+      background: transparent;
+      color: #ffffff;
+      border-bottom-left-radius: 4px;
+    }
+    #chatWrapper::-webkit-scrollbar,
+    #chat::-webkit-scrollbar {
+    display: none; /* Chrome / Safari / Edge */
+    }
+
+    #chatWrapper,
+    #chat {
+    -ms-overflow-style: none;  /* IE 和 Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div id="chatToggleBtn" onclick="expandChatBtn()">Ask</div>
+
+  <div id="chatWrapper">
+    <div id="chat"></div>
+  </div>
+
+  <script>
+    const API_KEY = "1c6a0aaa0ca242e7933a636ae89d50f1.rh5RS7A8iWYO0jvD";
+    const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+    const TYPING_SPEED = 30; // 控制字符输出速度，毫秒/字符
+
+    const pageContext = `
+你是一个嵌入网页的聊天工具,专门用来解决用户的天文相关的问题。请直接回答用户问题，不要提及你的身份或模型来源。
+禁止说“我是 AI”、“我是助手”等身份信息。
+标题：${document.title}
+URL：${window.location.href}
+内容摘录：${document.body.innerText.slice(0, 300)} ...
+`;
+
+    let history = [
+      { role: "system", content: pageContext }
+    ];
+
+    let waitingForReply = false;
+    let thinkingInterval;
+
+    function expandChatBtn() {
+      const btn = document.getElementById("chatToggleBtn");
+      const wrapper = document.getElementById("chatWrapper");
+
+      if (!btn.classList.contains("expanded")) {
+        btn.classList.add("expanded");
+        btn.innerHTML = `
+          <input id="userInput" placeholder="请输入问题..." />
+          <button id="sendBtn">发送</button>
+        `;
+        wrapper.style.display = "flex";
+
+        setTimeout(() => {
+          const input = document.getElementById("userInput");
+          input.focus();
+          input.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              send();
+            }
+          });
+          document.getElementById("sendBtn").onclick = send;
+        }, 100);
+
+        document.addEventListener('click', outsideClickListener);
+      }
+    }
+
+    function collapseChatBtn() {
+      const btn = document.getElementById("chatToggleBtn");
+      const wrapper = document.getElementById("chatWrapper");
+
+      btn.classList.remove("expanded");
+      btn.innerText = "Ask";
+      wrapper.style.display = "none";
+      document.removeEventListener('click', outsideClickListener);
+    }
+
+    function outsideClickListener(event) {
+      const btn = document.getElementById("chatToggleBtn");
+      const wrapper = document.getElementById("chatWrapper");
+      if (!btn.contains(event.target) && !wrapper.contains(event.target)) {
+        collapseChatBtn();
+      }
+    }
+
+    async function send() {
+      if (waitingForReply) return;
+      const input = document.getElementById("userInput");
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = "";
+
+      const chat = document.getElementById("chat");
+      chat.innerHTML += `<p class="user">${text}</p>`;
+      chat.scrollTop = chat.scrollHeight;
+      history.push({ role: "user", content: text });
+
+      // 添加思考中动画
+      const thinkingEl = document.createElement("p");
+      thinkingEl.className = "ai";
+      thinkingEl.id = "thinking";
+      thinkingEl.textContent = "思考中";
+      chat.appendChild(thinkingEl);
+      startThinkingAnimation();
+
+      waitingForReply = true;
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "chatglm_turbo",
+            messages: history
+          })
+        });
+
+        const data = await res.json();
+        const reply = data?.choices?.[0]?.message?.content || "AI 没有回应";
+        history.push({ role: "assistant", content: reply });
+
+        stopThinkingAnimation();
+        thinkingEl.remove();
+
+        // 创建新元素用于打字机效果输出
+        const aiEl = document.createElement("p");
+        aiEl.className = "ai";
+        chat.appendChild(aiEl);
+        await typeReply(aiEl, reply);
+
+        chat.scrollTop = chat.scrollHeight;
+      } catch (err) {
+        stopThinkingAnimation();
+        thinkingEl.remove();
+        chat.innerHTML += `<p class="ai">请求失败</p>`;
+        console.error(err);
+      } finally {
+        waitingForReply = false;
+      }
+    }
+
+    function startThinkingAnimation() {
+      const el = document.getElementById("thinking");
+      let dots = 0;
+      thinkingInterval = setInterval(() => {
+        dots = (dots + 1) % 4;
+        el.textContent = "思考中" + ".".repeat(dots);
+      }, 500);
+    }
+
+    function stopThinkingAnimation() {
+      clearInterval(thinkingInterval);
+    }
+
+   async function typeReply(el, text) {
+  const chat = document.getElementById("chat");
+  for (let i = 0; i < text.length; i++) {
+    el.textContent += text[i];
+    chat.scrollTop = chat.scrollHeight;  // 每个字都强制滚动到底部
+    await new Promise(resolve => setTimeout(resolve, TYPING_SPEED));
+  }
+}
+
+
+  </script>
+</body>
+</html>
