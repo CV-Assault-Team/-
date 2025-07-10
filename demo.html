@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>saddc</title>
+<style>
+    .ccc{
+        background-color:blue;
+        color:red
+    }
+    .bbb{
+        background-color: aqua;
+        color:blueviolet
+    }
+</style>
+<style>
+    .row {
+      display: flex;
+    }
+    .col {
+      flex: 1;
+      padding: 20px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      text-align: center;
+    }
+  </style>
+</head>
+<body background="96308619_p1.jpg"  >
+    <h1 style="text-align: center;">asdafafa</h1>
+    <a href="https://eyes.nasa.gov/apps/orrery/#/home">this</a>
+    <br><br><br>
+    <hr>
+    <br>
+    <table border="1">aadad</table>
+    <pre style="color:aquamarine;font-size: 44px;">sffah<br/>akd</pre>
+    <p>kashdkahd</p>
+    <iframe src=""width="1600" height="900" name="iframe_a"></iframe>
+    <p><a href="https://eyes.nasa.gov/apps/solar-system/" target="iframe_a">eyes.nasa</a></p>
+    
+  <div class="row">
+    <div class="col">1内容</div>
+    <div class="col">2内容</div>
+    <div class="col">3内容</div>
+    <div class="col">4内容</div>
+  </div>
+  <!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI 聊天助手（带上下文 & Enter 发送）</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 20px; }
+    #chat { border: 1px solid #ccc; padding: 10px; height: 400px; overflow-y: auto; margin-bottom: 10px; }
+    #inputArea { display: flex; gap: 10px; }
+    input { flex: 1; padding: 8px; font-size: 16px; }
+    button { padding: 8px 16px; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<h2>AI 聊天（识别当前页面，Enter 发送）</h2>
+<div id="chat"></div>
+<div id="inputArea">
+  <input id="userInput" type="text" placeholder="请输入你的问题，按 Enter 发送..." />
+  <button onclick="send()">发送</button>
+</div>
+
+<script>
+const API_KEY = "1c6a0aaa0ca242e7933a636ae89d50f1.rh5RS7A8iWYO0jvD";  // 你的真实API Key
+const API_URL = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+
+// 获取当前页面信息做上下文
+const pageContext = `
+这是当前页面内容摘要：
+标题：${document.title}
+URL：${window.location.href}
+正文内容摘录：${document.body.innerText.slice(0, 300)} ...
+`;
+
+let history = [
+  { role: "system", content: pageContext }
+];
+
+async function send() {
+  const input = document.getElementById("userInput");
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+
+  const chat = document.getElementById("chat");
+  chat.innerHTML += `<p><b>你：</b>${text}</p>`;
+  history.push({ role: "user", content: text });
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + API_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "chatglm_turbo",
+        messages: history
+      })
+    });
+
+    const data = await res.json();
+    const reply = data?.choices?.[0]?.message?.content || "AI 没有回答";
+    history.push({ role: "assistant", content: reply });
+    chat.innerHTML += `<p><b>AI：</b>${reply}</p>`;
+    chat.scrollTop = chat.scrollHeight;
+  } catch (err) {
+    chat.innerHTML += `<p><b>AI：</b> 请求失败</p>`;
+    console.error(err);
+  }
+}
+
+// 监听回车键（Enter）发送
+document.getElementById("userInput").addEventListener("keydown", function(event) {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    send();
+  }
+});
+</script>
+
+</body>
+</html>
